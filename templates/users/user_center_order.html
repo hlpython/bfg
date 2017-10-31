@@ -1,0 +1,123 @@
+{% extends 'common/base.html' %}
+{% load staticfiles %}
+
+
+{% block body %}
+{#    包含了页头状态栏#}
+	{% include 'common/status.html' %}
+
+	<div class="search_bar clearfix">
+		<a href="{% url 'goods:index' %}" class="logo fl"><img src="{% static 'images/logo.png' %}"></a>
+		<div class="sub_page_name fl">|&nbsp;&nbsp;&nbsp;&nbsp;用户中心</div>
+
+       {#   包含搜索框#}
+    {% include 'common/search.html' %}
+
+    </div>
+
+	<div class="main_con clearfix">
+
+        {#包含用户中心信息左侧导航栏#}
+		{% include 'users/left_common_menu.html' with flag='order' %}
+		<div class="right_content clearfix">
+				<h3 class="common_title2">全部订单</h3>
+        {% for order in orders %}
+				<ul class="order_list_th w978 clearfix">
+					<li class="col01">{{ order.update_time }}</li>
+					<li class="col02">订单号：{{ order.order_number }}</li>
+					<li class="col02 stress">
+                        {% if order.order_status == 1 %}
+                            货到付款
+                        {% elif order.order_status == 2 %}
+                            微信支付
+                        {% elif order.order_status == 3 %}
+                            支付宝支付
+                        {% elif order.order_status == 4 %}
+                            银联支付
+                        {% endif %}
+                    </li>
+				</ul>
+
+				<table class="order_list_table w980">
+					<tbody>
+						<tr>
+							<td width="55%">
+                                {% for goods in order.goodsdetail_set.all %}
+								<ul class="order_goods_list clearfix">
+									<li class="col01"><img src="{% static goods.detail_img %}"></li>
+									<li class="col02">{{ goods.detail_name }}<em>{{ goods.detail_price }}元/{{ goods.detail_unit }}</em></li>
+									<li class="col03">{{ goods.detail_amount }}</li>
+									<li class="col04">{{ goods.detail_price }}元</li>
+								</ul>
+                                 {% endfor %}
+							</td>
+							<td width="15%">{{ order.total }}元</td>
+                            <td width="15%">
+                                {% if order.order_pay == 1 %}
+                                    未支付
+                                {% elif order.order_pay == 2 %}
+                                    待发货
+                                {% elif order.order_pay == 3 %}
+                                    待收货
+                                {% elif order.order_pay == 4 %}
+                                    已完成
+                                {% endif %}
+
+                            </td>
+							<td width="15%"><a href="#" class="oper_btn">去付款</a></td>
+						</tr>
+					</tbody>
+				</table>
+        {% endfor %}
+{#            已支付状态订单#}
+{#				<ul class="order_list_th w978 clearfix">#}
+{#					<li class="col01">2016-8-21 17:36:24</li>#}
+{#					<li class="col02">订单号：56872934</li>#}
+{#					<li class="col02 stress">已支付</li>			#}
+{#				</ul>#}
+{##}
+{#            <table class="order_list_table w980">#}
+{#                    <tbody>#}
+{#						<tr>#}
+{#							<td width="55%">#}
+{#								<ul class="order_goods_list clearfix">					#}
+{#									<li class="col01"><img src="images/goods02.jpg"></li>#}
+{#									<li class="col02">嘎啦苹果嘎啦苹果<em>11.80元/500g</em></li>	#}
+{#									<li class="col03">1</li>#}
+{#									<li class="col04">11.80元</li>	#}
+{#								</ul>#}
+{#								<ul class="order_goods_list clearfix">					#}
+{#									<li class="col01"><img src="images/goods02.jpg"></li>#}
+{#									<li class="col02">嘎啦苹果嘎啦苹果<em>11.80元/500g</em></li>	#}
+{#									<li class="col03">1</li>#}
+{#									<li class="col04">11.80元</li>	#}
+{#								</ul>#}
+{#							</td>#}
+{#							<td width="15%">33.60元</td>#}
+{#							<td width="15%">已付款</td>#}
+{#							<td width="15%"><a href="#" class="oper_btn">查看物流</a></td>#}
+{#						</tr>#}
+{#					</tbody>#}
+{##}
+{#				</table>#}
+
+
+				<div class="pagenation">
+                    {% if orders.has_previous %}
+                    <a href="?page={{ orders.previous_page_number }}">上一页</a>
+                    {% endif %}
+                    {% for index in paginator.page_range %}
+                        {% if index == orders.number %}
+                            <a href="?page={{ index }}" class="active">{{ index }}</a>
+                        {% else %}
+                            <a href="?page={{ index }}">{{ index }}</a>
+                        {% endif %}
+                    {% endfor %}
+                    {% if orders.has_next %}
+                    <a href="?page={{ orders.next_page_number }}">下一页></a>
+                    {% endif %}
+                </div>
+
+		</div>
+	</div>
+{% endblock body %}

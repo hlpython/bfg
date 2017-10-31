@@ -1,0 +1,118 @@
+{% extends 'common/base.html' %}
+{% load staticfiles %}
+{% block header_js %}
+<script src="{% static 'js/jquery-1.12.4.min.js' %}"></script>
+    <script>
+
+    $(function () {
+        // 页面加载时，先获取邮费，然后减去邮费进行
+        yunfei = $('.common_list_con .transit').find('b').html();
+        yunfei = parseInt(yunfei.split('元')[0]);
+        // 获取总价
+        total_money = parseInt($('.total_goods_count').find('b').html().split('元')[0]);
+        // 更新实付款
+        $('.total_pay').find('b').html((total_money - yunfei).toString() + '元');
+
+        $('.order_submit').find('a').click(function () {
+            // 获取商品列表字符串
+            goods_list_str = $(this).attr('goods_list_str');
+            // 获得支付方式
+            pay_style = $('input[name=pay_style]:checked').val();
+            // 获取csrf_token的值
+            csrf_value = $('input[name=csrfmiddlewaretoken]').val();
+{#            alert(goods_list_str);#}
+{#            alert(pay_style);#}
+{#            alert(csrf_value);#}
+        $.post('{% url 'order:order_handle' %}', {'pay_style':pay_style, 'goods_list_str':goods_list_str, 'csrfmiddlewaretoken':csrf_value}, function(data){
+            if (data.ret != 0){
+                window.location.href = '{% url 'users:order' %}';
+            }else{
+                alert('提交失败！\n服务器正忙，请稍后再试！');
+            }
+        });
+
+
+        });
+
+    });
+    </script>
+{% endblock header_js %}
+{% block body %}
+
+{#    包含了页头状态栏#}
+	{% include 'common/status.html' %}
+
+	<div class="search_bar clearfix">
+		<a href="{% url 'goods:index' %}" class="logo fl"><img src="{% static 'images/logo.png' %}"></a>
+		<div class="sub_page_name fl">|&nbsp;&nbsp;&nbsp;&nbsp;提交订单</div>
+
+		{#   包含搜索框#}
+    {% include 'common/search.html' %}
+
+	</div>
+	
+	<h3 class="common_title">确认收货地址</h3>
+
+	<div class="common_list_con clearfix">
+		<dl>
+			<dt>寄送到：</dt>
+			<dd><input type="radio" name="" checked="">{{ user.user_addr }} （{{ user.user_recv }} 收） {{ user.user_tele }}</dd>
+		</dl>
+		<a href="{% url 'users:site' %}" class="edit_site" target="_blank">编辑收货地址</a>
+	</div>
+	
+	<h3 class="common_title">支付方式</h3>	
+	<div class="common_list_con clearfix">
+		<div class="pay_style_con clearfix">
+			<input value="1" type="radio" name="pay_style" checked>
+			<label class="cash">货到付款</label>
+			<input value="2" type="radio" name="pay_style">
+			<label class="weixin">微信支付</label>
+			<input value="3" type="radio" name="pay_style">
+			<label class="zhifubao"></label>
+			<input value="4" type="radio" name="pay_style">
+			<label class="bank">银行卡支付</label>
+		</div>
+	</div>
+
+	<h3 class="common_title">商品列表</h3>
+	
+	<div class="common_list_con clearfix">
+		<ul class="goods_list_th clearfix">
+			<li class="col01">商品名称</li>
+			<li class="col02">商品单位</li>
+			<li class="col03">商品价格</li>
+			<li class="col04">数量</li>
+			<li class="col05">小计</li>		
+		</ul>
+
+        {% for cart in carts %}
+		<ul class="goods_list_td clearfix">
+			<li class="col01">{{ forloop.counter}}</li>
+			<li class="col02"><img src="{% static cart.cart_goods.goods_image %}"></li>
+			<li class="col03">{{ cart.cart_goods.goods_name }}</li>
+			<li class="col04">{{ cart.cart_goods.goods_unit }}</li>
+			<li class="col05">{{ cart.cart_goods.goods_price }} 元</li>
+			<li class="col06">{{ cart.cart_amount }}</li>
+			<li class="col07">{{ cart.single_total_money }} 元</li>
+		</ul>
+        {% endfor %}
+
+	</div>
+
+	<h3 class="common_title">总金额结算</h3>
+
+	<div class="common_list_con clearfix">
+		<div class="settle_con">
+			<div class="total_goods_count">共<em>{{ carts.total_nums }}</em>件商品，总金额<b>{{ carts.total_money }}元</b></div>
+			<div class="transit">运费：<b>10元</b></div>
+			<div class="total_pay">实付款：<b>52.60元</b></div>
+		</div>
+	</div>
+
+	<div class="order_submit clearfix">
+        {#    在这里添加一个csrf_token， 给上面的js中的 post请求携带用的，不带会被禁止访问#}
+        {% csrf_token %}
+		<a href="javascript:;" id="order_btn" goods_list_str="{{ goods_string }}">提交订单</a>
+	</div>	
+{% endblock body %}

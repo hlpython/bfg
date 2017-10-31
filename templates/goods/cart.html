@@ -1,0 +1,5 @@
+<div class="guest_cart fr">
+    <a href="{% url 'carts:index' %}" class="cart_name fl" target="_blank">我的购物车</a>
+    <div class="goods_count fl" id="show_count">{{ request.total|default:0 }}</div>
+</div>
+
